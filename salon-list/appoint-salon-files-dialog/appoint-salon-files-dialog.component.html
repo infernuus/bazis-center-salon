@@ -1,0 +1,33 @@
+<div class="dialog-content-wrapper">
+  <div mat-dialog-title>
+    <div i18n>{{ getTitle() }}</div>
+    <button mat-button class="mat-icon-button" (click)="dialogRef.close(undefined)" aria-label="Close dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div mat-dialog-content class="p-0 pb-0 m-0" fxLayout="column" fxLayoutAlign="start stretch">
+    <ng-container *ngIf="data$ | async as data">
+      <mat-selection-list #files [multiple]="false" fusePerfectScrollbar>
+        <mat-list-option i18n [value]="0" [selected]="true">Не назначено</mat-list-option>
+
+        <mat-list-option *ngFor="let item of data" [value]="item.id">
+          {{ item.name }}
+        </mat-list-option>
+      </mat-selection-list>
+    </ng-container>
+  </div>
+
+  <div mat-dialog-actions>
+    <button
+      [disabled]="files?.selectedOptions.selected.length === 0"
+      i18n
+      mat-raised-button
+      type="button"
+      class="mat-accent mr-16"
+      (click)="saveAndClose()">
+      ОК
+    </button>
+    <button i18n mat-button (click)="dialogRef.close(undefined)">ОТМЕНА</button>
+  </div>
+</div>

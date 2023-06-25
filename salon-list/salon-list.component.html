@@ -1,0 +1,341 @@
+<ng-container *ngIf="data$ | async"></ng-container>
+
+<div id="salons" class="page-layout carded fullwidth inner-scroll">
+  <!-- TOP BACKGROUND -->
+  <div class="top-bg accent"></div>
+  <!-- / TOP BACKGROUND -->
+
+  <!-- CENTER -->
+  <div class="center">
+    <!-- CONTENT HEADER -->
+    <div class="header accent p-24" fxLayout="row wrap" fxLayoutAlign="start center" fxLayoutGap.gt-xs="16px">
+      <!-- APP TITLE -->
+      <div class="logo" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+        <mat-icon
+          class="logo-icon mr-16"
+          *fuseIfOnDom
+          [@animate]="{ value: '*', params: { delay: '50ms', scale: '0.2' } }"
+          >work</mat-icon
+        >
+        <span i18n class="logo-text h1" *fuseIfOnDom [@animate]="{ value: '*', params: { delay: '100ms', x: '-25px' } }"
+          >Салоны</span
+        >
+      </div>
+      <!-- / APP TITLE -->
+
+      <!-- SEARCH -->
+
+      <div fxFlex fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="40px">
+        <div fxFlex class="search-input-wrapper m-sm-0" fxLayout="row" fxLayoutAlign="center center">
+          <label for="search" class="mr-8">
+            <mat-icon class="secondary-text">search</mat-icon>
+          </label>
+          <mat-form-field floatLabel="never">
+            <input i18n-placeholder id="search" matInput #filter placeholder="Поиск" />
+          </mat-form-field>
+        </div>
+
+        <!-- / SEARCH -->
+
+        <!-- FILTER OPTIONS -->
+
+        <mat-form-field fxHide.lt-md>
+          <mat-select
+            i18n-placeholder
+            fxHide.xs
+            #filterOption
+            class="search-param-wrapper ml-8 m-sm-0"
+            fxFlex="1 0 auto"
+            fxLayout="row"
+            fxLayoutAlign="start center"
+            placeholder="Прайс-лист"
+            [value]="0">
+            <mat-option i18n [value]="0">Все</mat-option>
+            <mat-option i18n [value]="1">Обновлен</mat-option>
+            <mat-option i18n [value]="2">Не обновлен</mat-option>
+            <mat-option i18n [value]="3">Не назначен</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <!-- FILTER OPTIONS / -->
+
+        <!-- MENU -->
+        <div>
+          <button
+            mat-raised-button
+            [routerLink]="['/salon-data-upd/salons/new']"
+            class="add-product-button mat-white-bg my-12 mt-sm-0">
+            <span i18n>ДОБАВИТЬ САЛОН</span>
+          </button>
+        </div>
+      </div>
+      <!-- / MENU -->
+    </div>
+    <!-- / HEADER -->
+
+    <!-- CONTENT CARD -->
+    <div class="content-card">
+      <mat-table
+        class="salons-table"
+        #table
+        [dataSource]="dataSource"
+        [@animateStagger]="{ value: '50' }"
+        fusePerfectScrollbar
+        fxHide.xs
+        matSort
+        matSortDirection="desc"
+        (matSortChange)="sort$.next($event)">
+        <!-- Selected Column -->
+        <ng-container matColumnDef="selected">
+          <mat-header-cell mat-header-cell *matHeaderCellDef>
+            <mat-checkbox (change)="selectAll()" [checked]="selectedAll"> </mat-checkbox>
+          </mat-header-cell>
+          <mat-cell mat-cell *matCellDef="let item">
+            <mat-checkbox
+              (click)="$event.stopPropagation()"
+              (change)="$event ? selected.toggle(item.id) : null"
+              [checked]="selected.isSelected(item.id)">
+            </mat-checkbox>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container cdkColumnDef="name">
+          <mat-header-cell i18n *cdkHeaderCellDef mat-sort-header>Название</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-sm>
+            <p class="text-truncate">{{ item.name }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Article Column -->
+        <ng-container cdkColumnDef="article">
+          <mat-header-cell i18n *cdkHeaderCellDef>Идентификатор</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-md>
+            <p class="text-truncate">{{ item.article }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- DateCreated Column -->
+        <ng-container cdkColumnDef="dateCreated">
+          <mat-header-cell i18n *cdkHeaderCellDef>Дата создания</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-md>
+            <p class="text-truncate">{{ item.dateCreated | date : 'dd.MM.yyyy' }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Identifier Column -->
+        <ng-container cdkColumnDef="identifier">
+          <mat-header-cell i18n *cdkHeaderCellDef>Тип авторизации</mat-header-cell>
+          <mat-cell *cdkCellDef="let item">
+            <p class="status text-truncate h6 p-4">
+              {{ item.identifier }}
+            </p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Manager Column -->
+        <ng-container cdkColumnDef="manager">
+          <mat-header-cell i18n *cdkHeaderCellDef fxHide fxShow.gt-sm>Менеджер</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-sm>
+            <p class="text-truncate">{{ getManagerName(item.manager) }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Settings Column -->
+        <ng-container cdkColumnDef="settings">
+          <mat-header-cell i18n *cdkHeaderCellDef fxHide fxShow.gt-sm>Настройки</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-sm>
+            <p class="text-truncate">{{ item.settings.name }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- BaseMaterial Column -->
+        <ng-container cdkColumnDef="base-material">
+          <mat-header-cell i18n *cdkHeaderCellDef fxHide fxShow.gt-sm mat-sort-header>База материалов</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-sm>
+            <p class="text-truncate">{{ item.baseMaterialConfig?.name }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Version Column -->
+        <ng-container cdkColumnDef="version">
+          <mat-header-cell i18n *cdkHeaderCellDef fxHide fxShow.gt-sm mat-sort-header>Версия</mat-header-cell>
+          <mat-cell *cdkCellDef="let item" fxHide fxShow.gt-sm>
+            <p class="text-truncate">{{ item.version }}</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- State Column -->
+        <ng-container matColumnDef="state">
+          <mat-header-cell i18n *matHeaderCellDef>Прайс-лист</mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <p
+              i18n
+              *ngIf="item.countPriceLists > 0 && item.countPriceLists === item.countUpdatedPriceLists"
+              class="text-truncate h6 p-4 green-600"
+              >Обновлен</p
+            >
+            <p
+              i18n
+              *ngIf="item.countPriceLists > 0 && item.countPriceLists !== item.countUpdatedPriceLists"
+              class="text-truncate h6 p-4 red-500"
+              >Не обновлен</p
+            >
+            <p i18n *ngIf="item.countPriceLists === 0" class="text-truncate h6 p-4 grey-600">Не назначен</p>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Block Column -->
+        <ng-container matColumnDef="block">
+          <mat-header-cell *matHeaderCellDef></mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <button
+              *ngIf="item.blocked"
+              i18n-matTooltip
+              mat-icon-button
+              (click)="$event.stopPropagation(); toggleBlockSalon(item)"
+              matTooltip="Разблокировать">
+              <mat-icon class="mat-24" aria-label="">lock</mat-icon>
+            </button>
+            <button
+              *ngIf="!item.blocked"
+              i18n-matTooltip
+              mat-icon-button
+              (click)="$event.stopPropagation(); toggleBlockSalon(item)"
+              matTooltip="Заблокировать">
+              <mat-icon class="mat-24" aria-label="">lock_open</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Menu Column -->
+        <ng-container matColumnDef="menu">
+          <mat-header-cell *matHeaderCellDef>
+            <button mat-icon-button [matMenuTriggerFor]="menu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button
+                *ngIf="editSalonPermission"
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSettings()">
+                <span i18n>Назначить настройки</span>
+              </button>
+              <button *ngIf="editSalonPermission" mat-menu-item [matMenuTriggerFor]="menuConfigs">
+                <span i18n>Назначить набор</span>
+              </button>
+              <button *ngIf="editSalonPermission" mat-menu-item [matMenuTriggerFor]="menuFiles">
+                <span i18n>Назначить файлы</span>
+              </button>
+              <button mat-menu-item (click)="exportSalonsToExcel()">
+                <span i18n>Отчет о салонах (Excel)</span>
+              </button>
+            </mat-menu>
+
+            <mat-menu #menuConfigs="matMenu">
+              <button mat-menu-item [disabled]="isSelectedDisabled()" (click)="appointServicesConfig()">
+                <span i18n>Услуг</span>
+              </button>
+
+              <button mat-menu-item [disabled]="isSelectedDisabled()" (click)="appointStatesConfig()">
+                <span i18n>Состояний</span>
+              </button>
+
+              <button mat-menu-item [disabled]="isSelectedDisabled()" (click)="appointPaymentsTypeConfig()">
+                <span i18n>Типов платежей</span>
+              </button>
+
+              <button mat-menu-item [disabled]="isSelectedDisabled()" (click)="appointBaseMaterialsTypeConfig()">
+                <span i18n>Баз материалов</span>
+              </button>
+            </mat-menu>
+
+            <mat-menu #menuFiles="matMenu">
+              <button
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSalonFiles(typeUseItemEnum.Textures)">
+                <span i18n>Текстуры</span>
+              </button>
+
+              <button
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSalonFiles(typeUseItemEnum.DumpBaseMaterial)">
+                <span i18n>Дамп базы материалов</span>
+              </button>
+
+              <button
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSalonFiles(typeUseItemEnum.Composition)">
+                <span i18n>Готовые композиции</span>
+              </button>
+
+              <button
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSalonFiles(typeUseItemEnum.InteriorElements)">
+                <span i18n>Элементы интерьера</span>
+              </button>
+
+              <button
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSalonFiles(typeUseItemEnum.BaseMaterialTextures)">
+                <span i18n>Текстуры для баз материалов</span>
+              </button>
+
+              <button
+                mat-menu-item
+                [disabled]="isSelectedDisabled()"
+                (click)="appointSalonFiles(typeUseItemEnum.Scripts)">
+                <span i18n>Скрипты</span>
+              </button>
+            </mat-menu>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let item">
+            <button mat-icon-button [matMenuTriggerFor]="menu" (click)="$event.stopPropagation()">
+              <mat-icon class="mat-24" aria-label="">more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button i18n mat-menu-item (click)="forcedUpdatedPriceList(item)">Обновление прайс-листов</button>
+              <button i18n mat-menu-item (click)="deleteSalon(item)" *ngIf="deleteSalonPermission">Удалить</button>
+            </mat-menu>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *cdkHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+
+        <mat-row
+          *cdkRowDef="let item; columns: displayedColumns"
+          class="salon"
+          [routerLink]="[urlSalonDetail + item.id]">
+        </mat-row>
+      </mat-table>
+      <div class="p-16" fxHide fxShow.xs fusePerfectScrollbar>
+        <mat-card class="card mb-16" *ngFor="let item of dataSource">
+          <mat-card-content>
+            <p i18n>Название: {{ item.name }}</p>
+            <p i18n>Идентификатор: {{ item.article }}</p>
+            <p i18n>Дата создания: {{ item.dateCreated | date : 'dd.MM.yyyy' }}</p>
+            <p i18n>Тип авторизации: {{ item.identifier }}</p>
+            <p i18n>Менеджер: {{ getManagerName(item.manager) }}</p>
+            <p i18n>Настройки: {{ item.settings.name }}</p>
+            <p i18n>База материалов: {{ item.baseMaterialConfig?.name }}</p>
+            <p i18n>Версия: {{ item.version }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <mat-paginator
+        #paginator
+        [length]="salonListService.salonsTotalCount"
+        [pageIndex]="0"
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 25, 100]">
+      </mat-paginator>
+    </div>
+    <!-- / CONTENT CARD -->
+  </div>
+</div>
+<!-- / CENTER -->

@@ -1,0 +1,17 @@
+.appoint-salon-files-dialog {
+  .mat-dialog-container {
+    padding: 0;
+  }
+
+  .dialog-content-wrapper {
+    max-height: 450px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mat-dialog-content {
+    height: 400px;
+    border-bottom: 1px solid rgb(0 0 0 / .12);
+  }
+
+}

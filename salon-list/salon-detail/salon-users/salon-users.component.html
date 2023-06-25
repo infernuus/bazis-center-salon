@@ -1,0 +1,83 @@
+<ng-container *ngIf="data$ | async"></ng-container>
+<ng-container *ngIf="dataTemp$ | async"></ng-container>
+<ng-container *ngIf="groups$ | async"></ng-container>
+
+<div id="salon-users">
+  <mat-table class="salon-users-table" #table [dataSource]="dataSource">
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <mat-header-cell i18n *cdkHeaderCellDef>Наименование</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <p class="text-truncate">{{ item.name }}</p>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="group">
+      <mat-header-cell i18n *cdkHeaderCellDef>Группа</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <p class="text-truncate">{{ item.group.name }}</p>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Phone Column -->
+    <ng-container matColumnDef="phone">
+      <mat-header-cell i18n *cdkHeaderCellDef>Телефон</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <p class="text-truncate">{{ item.phone }}</p>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Email Column -->
+    <ng-container matColumnDef="email">
+      <mat-header-cell i18n *cdkHeaderCellDef>Email</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <p class="text-truncate">{{ item.email }}</p>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Note Column -->
+    <ng-container matColumnDef="note">
+      <mat-header-cell i18n *cdkHeaderCellDef>Примечание</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <p class="text-truncate">{{ item.note }}</p>
+      </mat-cell>
+    </ng-container>
+
+    <!-- IsAdmin Column -->
+    <ng-container matColumnDef="isAdmin">
+      <mat-header-cell i18n *cdkHeaderCellDef>Админ</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <mat-checkbox [disabled]="true" [checked]="item.isAdmin"></mat-checkbox>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Blocked Column -->
+    <ng-container matColumnDef="blocked">
+      <mat-header-cell i18n *cdkHeaderCellDef>Блок.</mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <mat-checkbox [disabled]="true" [checked]="item.blocked"></mat-checkbox>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Edit Column -->
+    <ng-container matColumnDef="edit">
+      <mat-header-cell *cdkHeaderCellDef>
+        <button i18n-matTooltip mat-icon-button [matTooltip]="'Создать пользователя'" (click)="addUser()">
+          <mat-icon>add_circle_outline</mat-icon>
+        </button>
+      </mat-header-cell>
+      <mat-cell *cdkCellDef="let item">
+        <button mat-icon-button i18n-matTooltip (click)="editUser(item)" [matTooltip]="'Редактировать'">
+          <mat-icon class="mat-24" aria-label="">edit</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *cdkHeaderRowDef="displayedColumns"></mat-header-row>
+
+    <mat-row *cdkRowDef="let item; columns: displayedColumns" class="salon-users"> </mat-row>
+  </mat-table>
+
+  <!-- </div> -->
+</div>

@@ -1,0 +1,51 @@
+<div mat-dialog-title fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="16px">
+  <div i18n>Пользователь</div>
+  <button mat-icon-button [mat-dialog-close]="undefined">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <form name="userForm" [formGroup]="userForm" fxLayout="column" fxLayoutAlign="space-around stretch" novalidate>
+    <mat-form-field *ngIf="!originalUser?.isAdmin">
+      <mat-select
+        placeholder="Группа"
+        i18n-placeholder
+        formControlName="groupId"
+        required
+        (selectionChange)="selectGroup($event.value)">
+        <mat-option *ngFor="let item of groups" [value]="item.id">{{ item.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput type="text" placeholder="Имя пользователя" i18n-placeholder formControlName="name" />
+      <mat-error *ngIf="userFormErrors.name.required" i18n>Имя пользователя не задано</mat-error>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput type="text" placeholder="Пароль" i18n-placeholder formControlName="password" />
+      <mat-error *ngIf="userFormErrors.password.required" i18n>Пароль не задан</mat-error>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput type="text" placeholder="Телефон" i18n-placeholder formControlName="phone" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput type="text" placeholder="Email" i18n-placeholder formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput type="text" placeholder="Примечание" i18n-placeholder formControlName="note" />
+    </mat-form-field>
+
+    <mat-checkbox i18n formControlName="blocked">Заблокирован</mat-checkbox>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-raised-button class="mat-accent" (click)="closeDialogAndSaveData()" [disabled]="!userForm.valid" i18n>
+    ОК
+  </button>
+  <button mat-button (click)="dialogRef.close(undefined)" i18n>Отмена</button>
+</mat-dialog-actions>

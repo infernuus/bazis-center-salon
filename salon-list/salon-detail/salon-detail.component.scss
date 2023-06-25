@@ -1,0 +1,41 @@
+#salon {
+  .header {
+    .subtitle {
+      margin: 6px 0 0;
+    }
+  }
+
+  .content {
+    .mat-tab-group,
+    .mat-tab-body-wrapper,
+    .tab-content {
+      flex: 1 1 auto;
+      max-width: 100%;
+    }
+
+    .salon-details {
+      display: flex;
+      flex-wrap: wrap;
+
+      .mat-form-field {
+        min-width: 400px;
+      }
+    }
+
+    .mat-tab-label {
+      height: 64px;
+    }
+
+    table {
+      table-layout: fixed;
+    }
+
+    .tab-content {
+      flex: 1 1 auto;
+    }
+
+    .mat-tab-body-content {
+      display: flex;
+    }
+  }
+}

@@ -1,0 +1,341 @@
+<ng-container *ngIf="formAction$ | async"></ng-container>
+<ng-container *ngIf="save$ | async"></ng-container>
+<ng-container *ngIf="params$ | async"></ng-container>
+<ng-container *ngIf="saveTempUsers$ | async"></ng-container>
+<ng-container *ngIf="addSalon$ | async"></ng-container>
+<ng-container *ngIf="data$ | async"></ng-container>
+<ng-container *ngIf="dataManager$ | async"></ng-container>
+
+<div id="salon" class="page-layout carded fullwidth" fusePerfectScrollbar>
+  <!-- TOP BACKGROUND -->
+  <div class="top-bg accent"></div>
+  <!-- / TOP BACKGROUND -->
+
+  <!-- CENTER -->
+  <div class="center">
+    <!-- CONTENT HEADER -->
+    <div class="header accent p-24" fxLayout="row" fxLayoutAlign="space-between center">
+      <!-- APP TITLE -->
+      <div fxLayout="row" fxLayoutAlign="start center">
+        <button class="mr-16" mat-icon-button [routerLink]="[urlBack]">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div
+          fxLayout="column"
+          fxLayoutAlign="start start"
+          *fuseIfOnDom
+          [@animate]="{ value: '*', params: { delay: '100ms', x: '-25px' } }">
+          <div class="h2" *ngIf="!isNewSalon">
+            {{ salon.name }}
+          </div>
+
+          <div i18n class="h2" *ngIf="isNewSalon">Новый салон</div>
+        </div>
+      </div>
+      <!-- / APP TITLE -->
+      <div>
+        <button
+          mat-raised-button
+          *ngIf="isNewSalon"
+          [disabled]="salonForm.invalid"
+          (click)="addSalon()"
+          class="mat-white-bg mt-16 mt-sm-0 text-uppercase">
+          <span i18n>Создать салон</span>
+        </button>
+      </div>
+    </div>
+    <!-- / HEADER -->
+
+    <!-- CONTENT CARD -->
+    <div class="content-card">
+      <!-- CONTENT -->
+      <div class="content">
+        <mat-tab-group>
+          <form class="salon-details" name="salonForm" [formGroup]="salonForm" novalidate>
+            <mat-tab i18n-label label="Общее">
+              <div
+                fxLayout="row"
+                fxLayoutAlign="start start"
+                fxLayoutGap="32px"
+                class="tab-content p-24"
+                fusePerfectScrollbar>
+                <div fxFlex="30" fxLayout="column" fxLayoutAlign="start stretch">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>Название</mat-label>
+                    <input matInput formControlName="name" required />
+                    <mat-error i18n *ngIf="salonForm.get('name').hasError('required')">Название не задано</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>Идентификатор салона</mat-label>
+                    <input matInput formControlName="article" required />
+                    <mat-error i18n *ngIf="salonForm.get('article').hasError('required')"
+                      >Идентификатор салона не задан</mat-error
+                    >
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>Страна</mat-label>
+
+                    <input
+                      (blur)="autocompleteClosed(salonForm.get('country'))"
+                      type="text"
+                      matInput
+                      formControlName="country"
+                      [matAutocomplete]="autoCountry"
+                      required />
+                    <mat-autocomplete
+                      autoActiveFirstOption
+                      #autoCountry="matAutocomplete"
+                      [displayWith]="countryAutocompleteDisplayFn"
+                      (closed)="autocompleteClosed(salonForm.get('country'))">
+                      <mat-option *ngFor="let option of countryResponse$ | async" [value]="option">
+                        {{ countryAutocompleteDisplayFn(option) }}
+                      </mat-option>
+                    </mat-autocomplete>
+
+                    <mat-error i18n *ngIf="salonForm.get('country').hasError('required')">Страна не задана</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>Адрес</mat-label>
+
+                    <input
+                      (blur)="autocompleteClosed(salonForm.get('address'))"
+                      type="text"
+                      matInput
+                      formControlName="address"
+                      [matAutocomplete]="auto"
+                      required />
+                    <mat-autocomplete
+                      autoActiveFirstOption
+                      #auto="matAutocomplete"
+                      [displayWith]="addressAutocompleteDisplayFn"
+                      (closed)="autocompleteClosed(salonForm.get('address'))">
+                      <mat-option *ngFor="let option of addressResponse$ | async" [value]="option">
+                        {{ addressAutocompleteDisplayFn(option) }}
+                      </mat-option>
+                    </mat-autocomplete>
+
+                    <mat-error i18n *ngIf="salonForm.get('address').hasError('required')">Адрес не задан</mat-error>
+                  </mat-form-field>
+                </div>
+
+                <div fxFlex="30" fxLayout="column" fxLayoutAlign="start stretch">
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>Тип идентификатора</mat-label>
+                    <mat-select formControlName="identifierType" required>
+                      <mat-option [value]="thisSalonIdentifierTypes.BazisKey" i18n>Базис-ключ</mat-option>
+                      <mat-option [value]="thisSalonIdentifierTypes.BazisOnlineLogin" i18n
+                        >Логин Базис-Онлайн</mat-option
+                      >
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>{{
+                      salonForm.controls.identifierType.value === thisSalonIdentifierTypes.BazisKey ? 'Ключ' : 'Логин'
+                    }}</mat-label>
+                    <ng-container
+                      *ngIf="
+                        salonForm.controls.identifierType.value === thisSalonIdentifierTypes.BazisKey;
+                        else elseSalonIdentTypeTemplate
+                      ">
+                      <input matInput type="text" formControlName="identifier" required />
+                    </ng-container>
+                    <ng-template #elseSalonIdentTypeTemplate>
+                      <input matInput type="text" formControlName="identifier" required />
+                    </ng-template>
+
+                    <mat-error i18n *ngIf="salonForm.get('identifier').hasError('required')"
+                      >Идентификатор не задан</mat-error
+                    >
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" *ngIf="!isNewSalon">
+                    <mat-label i18n>Инвайт</mat-label>
+                    <input matInput formControlName="invite" required />
+                    <button
+                      matSuffix
+                      i18n-matTooltip
+                      type="button"
+                      matTooltip="Копировать"
+                      mat-icon-button
+                      [cdkCopyToClipboard]="salon.invite"
+                      (click)="translateManagerService.openSnackBar('Инвайт скопирован в буфер обмена')">
+                      <mat-icon class="mat-24" aria-label="Copy to clipboard" svgIcon="content_copy"> </mat-icon>
+                    </button>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label i18n>Менеджеры</mat-label>
+                    <input
+                      (focus)="autocompleteFocus(salonForm.get('manager'))"
+                      (blur)="autocompleteClosed(salonForm.get('manager'))"
+                      type="text"
+                      matInput
+                      formControlName="manager"
+                      [matAutocomplete]="autoManager" />
+                    <mat-autocomplete
+                      autoActiveFirstOption
+                      #autoManager="matAutocomplete"
+                      [displayWith]="managerAutocompleteDisplayFn"
+                      (closed)="autocompleteClosed(salonForm.get('manager'))">
+                      <mat-option *ngFor="let manager of dataManager$ | async" [value]="manager">
+                        {{ managerAutocompleteDisplayFn(manager) }}
+                      </mat-option>
+                    </mat-autocomplete>
+                  </mat-form-field>
+                </div>
+              </div>
+            </mat-tab>
+
+            <mat-tab i18n-label label="Наборы">
+              <div
+                fxLayout="row"
+                fxLayoutAlign="start start"
+                fxLayoutGap="32px"
+                class="tab-content p-24"
+                fusePerfectScrollbar>
+                <div fxFlex="30" fxLayout="column" fxLayoutAlign="start stretch">
+                  <mat-form-field *ngIf="dataSettings$ | async as dataSettings" appearance="outline">
+                    <mat-label i18n>Настройки</mat-label>
+                    <mat-select formControlName="settingsId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of dataSettings.result" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataServiceConfig$ | async as dataServiceConfig" appearance="outline">
+                    <mat-label i18n>Набор услуг</mat-label>
+                    <mat-select formControlName="serviceConfigId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of dataServiceConfig.result" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataStateConfig$ | async as dataStateConfig" appearance="outline">
+                    <mat-label i18n>Набор состояний</mat-label>
+                    <mat-select formControlName="stateConfigId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of dataStateConfig.result" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataTypePaymentConfig$ | async as dataTypePaymentConfig" appearance="outline">
+                    <mat-label i18n>Набор типов платежей</mat-label>
+                    <mat-select formControlName="typePaymentConfigId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of dataTypePaymentConfig.result" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataBaseMaterialConfig$ | async as data" appearance="outline">
+                    <mat-label i18n>Набор баз материалов</mat-label>
+                    <mat-select formControlName="baseMaterialConfigId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data.result" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </mat-tab>
+
+            <mat-tab i18n-label label="Файлы">
+              <div
+                fxLayout="row"
+                fxLayoutAlign="start start"
+                fxLayoutGap="32px"
+                class="tab-content p-24"
+                fusePerfectScrollbar>
+                <div fxFlex="30" fxLayout="column" fxLayoutAlign="start stretch">
+                  <mat-form-field *ngIf="dataInterior$ | async as data" appearance="outline">
+                    <mat-label i18n>Элементы интерьера</mat-label>
+                    <mat-select formControlName="folderInteriorId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataTextures$ | async as data" appearance="outline">
+                    <mat-label i18n>Текстуры</mat-label>
+                    <mat-select formControlName="folderTexturesId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataComposition$ | async as data" appearance="outline">
+                    <mat-label i18n>Готовые композиции</mat-label>
+                    <mat-select formControlName="folderCompositionId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <div fxFlex="30" fxLayout="column" fxLayoutAlign="start stretch">
+                  <mat-form-field *ngIf="dataBaseMaterialTextures$ | async as data" appearance="outline">
+                    <mat-label i18n>Текстуры для базы материалов</mat-label>
+                    <mat-select formControlName="folderBaseMaterialTexturesId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataScripts$ | async as data" appearance="outline">
+                    <mat-label i18n>Скрипты</mat-label>
+                    <mat-select formControlName="folderScriptsId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field *ngIf="dataDumpBaseMaterials$ | async as data" appearance="outline">
+                    <mat-label i18n>Дамп базы материалов</mat-label>
+                    <mat-select formControlName="dumpBaseMaterialId">
+                      <mat-option i18n [value]="null">Не выбрано</mat-option>
+                      <mat-option *ngFor="let item of data" [value]="item.id">
+                        {{ item.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+            </mat-tab>
+
+            <mat-tab i18n-label label="Пользователи">
+              <div class="tab-content" fusePerfectScrollbar>
+                <cloud-salon-users [salonId]="salonId"></cloud-salon-users>
+              </div>
+            </mat-tab>
+          </form>
+        </mat-tab-group>
+      </div>
+      <!-- / CONTENT -->
+    </div>
+    <!-- / CONTENT CARD -->
+  </div>
+  <!-- / CENTER -->
+</div>
